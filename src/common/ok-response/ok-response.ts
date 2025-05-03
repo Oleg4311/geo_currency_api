@@ -15,8 +15,8 @@ export class BaseResponse<T> {
 }
 
 @ApiExtraModels(Country)
-export class CreateCountryResponse {
-  @ApiProperty({ example: HttpStatus.OK })
+export class CreateCountryResponse extends BaseResponse<Country> {
+  @ApiProperty({ example: HttpStatus.CREATED })
   status!: number;
 
   @ApiProperty({ example: 'Страна успешно создана' })
@@ -29,7 +29,7 @@ export class CreateCountryResponse {
 }
 
 @ApiExtraModels(Country)
-export class GetCountriesResponse {
+export class GetCountriesResponse extends BaseResponse<Country[]> {
   @ApiProperty({ example: HttpStatus.OK })
   status!: number;
 
@@ -44,7 +44,7 @@ export class GetCountriesResponse {
 }
 
 @ApiExtraModels(Country)
-export class UpdateCountryStatusResponse {
+export class UpdateCountryStatusResponse extends BaseResponse<Country> {
   @ApiProperty({ example: HttpStatus.OK })
   status!: number;
 
@@ -58,7 +58,7 @@ export class UpdateCountryStatusResponse {
 }
 
 @ApiExtraModels(Country)
-export class UpdateCurrencyStatusResponse {
+export class UpdateCurrencyStatusResponse extends BaseResponse<Country> {
   @ApiProperty({ example: HttpStatus.OK })
   status!: number;
 

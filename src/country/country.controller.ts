@@ -7,7 +7,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-  Res,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,9 +17,8 @@ import {
   ApiParam,
   ApiExtraModels,
 } from '@nestjs/swagger';
-import { Response } from 'express';
-import { CreateCountryDto } from '../common/dto/create-country.dto';
-import { UpdateStatusDto } from '../common/dto/update-status.dto';
+import { CreateCountryDto } from './dto/create-country.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 import { CountryService } from './country.service';
 import {
   CreateCountryResponse,
@@ -43,32 +42,35 @@ import {
   ValidationErrorResponse,
   ServerErrorResponse,
   ForbiddenErrorResponse,
-  NotFoundErrorResponse
+  NotFoundErrorResponse,
 )
 @Controller('countries')
 export class CountryController {
-  constructor(private readonly service: CountryService) {}
+  constructor(private readonly countryService: CountryService) {}
 
   @Post()
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Создать страну с валютами' })
   @ApiBody({ type: CreateCountryDto })
-  @ApiResponse({ status: HttpStatus.OK, type: CreateCountryResponse })
+  @ApiResponse({ status: HttpStatus.CREATED, type: CreateCountryResponse })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: ValidationErrorResponse })
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, type: ServerErrorResponse })
-  async create(@Body() dto: CreateCountryDto, @Res() res: Response) {
+  async create(@Body() dto: CreateCountryDto): Promise<CreateCountryResponse> {
     try {
-      const created = await this.service.create(dto);
-      return res.status(HttpStatus.OK).json({
-        status: HttpStatus.OK,
+      const created = await this.countryService.create(dto);
+      return {
+        status: HttpStatus.CREATED,
         message: 'Страна успешно создана',
         data: created,
-      });
+      };
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Ошибка при создании страны',
-      });
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Ошибка при создании страны',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -77,19 +79,22 @@ export class CountryController {
   @ApiOperation({ summary: 'Получить список стран и валют' })
   @ApiResponse({ status: HttpStatus.OK, type: GetCountriesResponse })
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, type: ServerErrorResponse })
-  async findAll(@Res() res: Response) {
+  async findAll(): Promise<GetCountriesResponse> {
     try {
-      const all = await this.service.findAll();
-      return res.status(HttpStatus.OK).json({
+      const all = await this.countryService.findAll();
+      return {
         status: HttpStatus.OK,
         message: 'Список стран успешно получен',
         data: all,
-      });
+      };
     } catch (error) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Ошибка при получении списка стран',
-      });
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Ошибка при получении списка стран',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -106,21 +111,22 @@ export class CountryController {
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateStatusDto,
-    @Res() res: Response,
-  ) {
+  ): Promise<UpdateCountryStatusResponse> {
     try {
-      const updated = await this.service.updateStatus(id, dto.isActive);
-      return res.status(HttpStatus.OK).json({
+      const updated = await this.countryService.updateStatus(id, dto.isActive);
+      return {
         status: HttpStatus.OK,
         message: 'Статус страны обновлён',
         data: updated,
-      });
+      };
     } catch (error: any) {
-      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-      return res.status(status).json({
-        status,
-        message: error.message || 'Ошибка при обновлении статуса страны',
-      });
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Ошибка при обновлении статуса страны',
+        },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -137,25 +143,26 @@ export class CountryController {
     @Param('countryId') countryId: string,
     @Param('code') code: string,
     @Body() dto: UpdateStatusDto,
-    @Res() res: Response,
-  ) {
+  ): Promise<UpdateCurrencyStatusResponse> {
     try {
-      const updated = await this.service.updateCurrencyStatus(
+      const updated = await this.countryService.updateCurrencyStatus(
         countryId,
         code,
         dto.isActive,
       );
-      return res.status(HttpStatus.OK).json({
+      return {
         status: HttpStatus.OK,
         message: 'Активность валюты успешно изменена',
         data: updated,
-      });
+      };
     } catch (error: any) {
-      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-      return res.status(status).json({
-        status,
-        message: error.message || 'Ошибка при изменении валюты',
-      });
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Ошибка при изменении валюты',
+        },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

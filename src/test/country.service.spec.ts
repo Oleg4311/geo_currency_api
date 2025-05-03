@@ -64,15 +64,40 @@ describe('CountryService', () => {
   });
 
   it('should update country status', async () => {
+    const countryBeforeUpdate = { ...mockCountry, isActive: true };
+    const updatedCountry = { ...mockCountry, isActive: false };
+  
+    mockModel.findByIdAndUpdate.mockResolvedValue(updatedCountry);
+  
     const result = await service.updateStatus('country123', false);
-    expect(result).toEqual(mockCountry);
-    expect(mockModel.findByIdAndUpdate).toHaveBeenCalledWith('country123', { isActive: false }, { new: true });
+  
+    expect(result.isActive).toBe(false);
+    expect(mockModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      'country123',
+      { isActive: false },
+      { new: true }
+    );
   });
 
   it('should update currency status', async () => {
+    const countryWithCurrency = {
+      ...mockCountry,
+      currencies: [{ code: 'EUR', name: 'Euro', isActive: true }],
+      save: mockSave,
+    };
+  
+    const updatedCountry = {
+      ...countryWithCurrency,
+      currencies: [{ code: 'EUR', name: 'Euro', isActive: false }],
+    };
+  
+    mockModel.findById.mockResolvedValue(countryWithCurrency);
+    mockSave.mockResolvedValue(updatedCountry);
+  
     const result = await service.updateCurrencyStatus('country123', 'EUR', false);
-    expect(result).toEqual(mockCountry);
-    expect(mockModel.findById).toHaveBeenCalled();
+  
+    expect(result.currencies[0].isActive).toBe(false);
+    expect(mockModel.findById).toHaveBeenCalledWith('country123');
     expect(mockSave).toHaveBeenCalled();
-  });
+  });  
 });

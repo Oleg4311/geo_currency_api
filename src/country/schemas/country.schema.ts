@@ -1,10 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Currency, CurrencySchema } from './currency.schema';
-
-export type CountryDocument = Country & Document;
-
 
 @Schema()
 export class Country {
